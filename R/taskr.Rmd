@@ -12,7 +12,7 @@ monofont: Source Code Pro
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-	echo = TRUE,
+	echo = FALSE,
 	message = TRUE,
 	warning = TRUE,
 	comment = NULL, # The default '##' leads every line of results in the final document
@@ -23,3 +23,7 @@ load("taskr.RData")
 ```
 
 # Productivity visualization
+```{r raster0}
+tmp <- list()
+tmp$t <- taskr$t[]
+```

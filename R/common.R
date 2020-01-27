@@ -142,6 +142,21 @@ fabioMaxInteger <- function(v, ...) {
   max(fabioInteger(v), ...)
 }
 
+# Show a task summary
+taskr.show <- function(t) {
+  t[, .(date, name, state, projectName)]
+}
+
+# Returns a recent date interval
+taskr.r <- function() {
+  Sys.Date() - c(30,0)
+}
+
+# Returns whether a date is recent
+taskr.re <- function(date, days.back = 30) {
+  date %between% (Sys.Date() - c(days.back,0))
+}
+
 # Do not treat warnings as errors
 fabioDoNotTreatWarningsAsErrors <- function() {
   options(warn = 1)
