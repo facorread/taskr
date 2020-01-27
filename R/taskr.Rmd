@@ -1,0 +1,25 @@
+---
+title: "Productivity charts"
+author: "Fabio A. Correa"
+date: "January 27, 2020"
+output:
+  pdf_document:
+    latex_engine: xelatex
+mainfont: Calibri
+sansfont: Calibri
+monofont: Source Code Pro
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = TRUE,
+	warning = TRUE,
+	comment = NULL, # The default '##' leads every line of results in the final document
+	fig.align = "center"
+)
+source("common.R")
+load("taskr.RData")
+```
+
+# Productivity visualization
