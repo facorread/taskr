@@ -153,8 +153,8 @@ taskr.r <- function() {
 }
 
 # Returns whether a date is recent
-taskr.re <- function(date, days.back = 30) {
-  date %between% (Sys.Date() - c(days.back,0))
+taskr.re <- function(date, days.back = -30, days.after = 0) {
+  date %between% (Sys.Date() + c(days.back, days.after))
 }
 
 # Do not treat warnings as errors

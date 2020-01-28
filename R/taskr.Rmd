@@ -25,5 +25,12 @@ load("taskr.RData")
 # Productivity visualization
 ```{r raster0}
 tmp <- list()
-tmp$t <- taskr$t[]
+tmp$tp <- taskr$t[taskr.re(date, -30, 60) & (state == "Pending")]
+tmp$ncol <- trunc(sqrt(nrow(tmp$t)))
+tmp$nrow <- trunc(1.5 * tmp$ncol)
+tmp$coord <- as.data.table(expand.grid(x = 1:tmp$nrow, y = 1:tmp$ncol))
+tmp$t <- cbind(tmp$coord[1:nrow(tmp$t)], tmp$tp)
+tmp$t[, stat := ifelse(state == "Done", 1, 0.5)]
+ggplot(tmp$t, aes(x = x, y = y, fill = hsv(colorh, colors, colorv), alpha = stat)) +
+  geom_raster();
 ```

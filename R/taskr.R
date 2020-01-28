@@ -5,74 +5,121 @@ if(!exists("fabioLastItem")) {
 
 cat("Most of this script is for copying and pasting on the console. Stopping now.\n")
 
+# Important notes
+# Do not save colors as data. It is just a hassle. Go with ggplot2 default colors.
+
 function() {
+  return(NULL)
   load("taskr.RData")
-  taskr <- list(t = data.table(
-    date = as.Date(c("2020-01-01", "2020-01-01", "2020-01-02", NA)),
-    name = c("Cooking", "Working out", "Studying", "Example task"),
-    state = c("Pending", "Done"),
-    projectName = c("Hosekeeping", "Loosing weight", "Studying", "Example project"),
-    id = 1:4,
-    parentTaskId = c(NA, NA, NA, 1),
-    recurring = c(TRUE, TRUE, TRUE, FALSE),
-    colorh = c(0.3, 0.5, 0.7, 0.8),
-    colors = 1,
-    colorv = 0.6
-  ))
+  # taskr <- list(t = data.table(
+  #   date = as.Date(c("2020-01-01", "2020-01-01", "2020-01-02", NA)),
+  #   name = c("Cooking", "Working out", "Studying", "Example task"),
+  #   state = c("Pending", "Done"),
+  #   projectName = c("Hosekeeping", "Loosing weight", "Studying", "Example project"),
+  #   id = 1:4,
+  #   parentTaskId = c(NA, NA, NA, 1),
+  #   recurring = c(TRUE, TRUE, TRUE, FALSE)
+  # ))
   setkey(taskr$t, id)
   save(taskr, file = "taskr.RData")
-}
 
 # Show recent tasks
-taskr$t[date == Sys.Date()]
-taskr$t[date > Sys.Date() - 30]
-taskr$t[taskr.re(date) & (state == "Pending")]
+tid <- taskr$t[date == Sys.Date(), id]
+tid <- taskr$t[(date == Sys.Date()) & (state == "Pending"), id]
+tid <- taskr$t[taskr.re(date) & (state == "Pending"), id]
+tid <- taskr$t[taskr.re(date, -30, 0) & (state == "Pending"), id]
+tid <- taskr$t[taskr.re(date, -30, 10) & (state == "Pending") & !recurring, id]
+taskr$t[tid]
+
+# Show a project
+tid <- taskr$t[projectName == "Writing proposals", id]
+tid <- taskr$t[(projectName == "Weight loss") & (is.na(date) | date <= Sys.Date()), id]
+taskr$t[tid]
+
+# Search
+tid <- taskr$t[projectName %like% "proposals", id]
+tid <- taskr$t[is.na(projectName), id]
+taskr$t[tid]
+
+# Get things done
+tid <- 3
+taskr$t[tid]
+taskr$t[tid, state := "Done"]
+taskr$t[tid, state := "Abandoned"]
+
+# Reschedule, handle overdues. Use overdueId to have a chance to correct any mistake.
+taskr$t[eval(overdueE)]
+overdueId <- taskr$t[eval(overdueE), id]
+taskr$t[overdueId, state := "Done"]
 
 # New task, run each line separately as needed
-newId <- 1 + max(taskr$t$id)
-taskr$t <- rbindlist(list(taskr$t, data.table(id = newId, state = "Pending", recurring = FALSE)), fill = TRUE) # https://stackoverflow.com/a/16797392/870609
-taskr$t[newId, date := Sys.Date()]
-taskr$t[newId, date := as.Date("2020-01-28")]
-taskr$t[newId, name := "Study Chinese"]
-taskr$t[newId, name := "Workout"]
-taskr$t[newId, state := "Pending"]
-taskr$t[newId, state := "Done"]
-taskr$t[newId, projectName := "Housekeeping"]
-taskr$t[newId, projectName := "ABM paper"]
-taskr$t[newId, projectName := "Bayes paper"]
-taskr$t[newId, projectName := "Study Chinese"]
-taskr$t[newId, projectName := "Weight loss"]
-taskr$t[newId, projectName := "Writing proposals"]
-taskr$t[newId, projectName := "Other"]
-taskr$t[newId, projectName := "Teaching nomination"]
-taskr$t[newId, projectName := "Review Mark Moritz"]
-taskr$t[newId, projectName := "Review Julie Field"]
-taskr$t[newId, projectName := "Review Ian Hamilton"]
-taskr$t[newId, projectName := "Review Sean Downey"]
-taskr$t[newId, projectName := "OSU"]
-taskr$t[newId, projectName := "HCLab"]
-taskr$t[newId, parentTaskId := 0]
-taskr$t[newId, recurring := FALSE]
-taskr$t[newId, recurring := TRUE]
-taskr$t[newId, colorh := 0.4]
-taskr$t[newId, colors := 1]
-taskr$t[newId, colorv := 0.6]
+tid <- 1 + max(taskr$t$id)
+taskr$t <- rbindlist(list(taskr$t, data.table(id = tid, state = "Pending", recurring = FALSE)), fill = TRUE) # https://stackoverflow.com/a/16797392/870609
+taskr$t[tid, date := Sys.Date()]
+taskr$t[tid, date := as.Date("2020-01-29")]
+taskr$t[tid, name := "Class prep"]
+taskr$t[tid, name := "Cleaning the carpet"]
+taskr$t[tid, name := "Cleaning the shower"]
+taskr$t[tid, name := "Curate EgoID"]
+taskr$t[tid, name := "Grade labs"]
+taskr$t[tid, name := "Laundry"]
+taskr$t[tid, name := "Redo problem description WG"]
+taskr$t[tid, name := "Redo theoretical page WG"]
+taskr$t[tid, name := "Schedule consultation with the Writing Center"]
+taskr$t[tid, name := "Study Chinese"]
+taskr$t[tid, name := "Washing the carpet"]
+taskr$t[tid, name := paste0("Weigh less than ", newWeights, " lb")]
+taskr$t[tid, name := "Workout"]
+taskr$t[tid, name := "Write methodology"]
+taskr$t[tid, state := "Pending"]
+taskr$t[tid, state := "Done"]
+taskr$t[tid, projectName := "Housekeeping"]
+taskr$t[tid, projectName := "ABM paper"]
+taskr$t[tid, projectName := "Bayes paper"]
+taskr$t[tid, projectName := "Study Chinese"]
+taskr$t[tid, projectName := "Weight loss"]
+taskr$t[tid, projectName := "Writing proposals"]
+taskr$t[tid, projectName := "Other"]
+taskr$t[tid, projectName := "Teaching"]
+taskr$t[tid, projectName := "Teaching nomination"]
+taskr$t[tid, projectName := "Review Mark Moritz"]
+taskr$t[tid, projectName := "Review Julie Field"]
+taskr$t[tid, projectName := "Review Ian Hamilton"]
+taskr$t[tid, projectName := "Review Sean Downey"]
+taskr$t[tid, projectName := "OSU"]
+taskr$t[tid, projectName := "HCLab"]
+taskr$t[tid, parentTaskId := 0]
+taskr$t[tid, recurring := FALSE]
+taskr$t[tid, recurring := TRUE]
 
 # Show the new task
-taskr.show(taskr$t[newId])
-taskr$t[newId]
+taskr.show(taskr$t[tid])
+taskr$t[tid]
 
 # New recurring task
 newDates = seq(Sys.Date(), by = 1, length.out = 20)
 newDates = seq(Sys.Date(), to = as.Date("2020-12-31"), by = 1)
-newDates = seq(Sys.Date(), to = as.Date("2020-04-20"), by = 1)
-newId <- seq_along(newDates) + max(taskr$t$id)
-taskr$t <- rbindlist(list(taskr$t, data.table(id = newId, state = "Pending", recurring = TRUE)), fill = TRUE) # https://stackoverflow.com/a/16797392/870609
-taskr$t[newId, date := newDates]
+newDates = seq(as.Date("2020-01-28"), to = as.Date("2020-12-31"), by = 14)
+newDates = seq(as.Date("2020-01-28"), length.out = 7, by = 14)
+tid <- seq_along(newDates) + max(taskr$t$id)
+taskr$t <- rbindlist(list(taskr$t, data.table(id = tid, state = "Pending", recurring = TRUE)), fill = TRUE) # https://stackoverflow.com/a/16797392/870609
+taskr$t[tid, date := newDates]
 # Reuse the code above to set the other fields of the task
 
 # Full list
 taskr$t
 names(taskr$t)
 
+# Troubleshooting
+duplicatedIds <- taskr$t[duplicated(id), id]
+taskr$t[(id %in% duplicatedIds)]
+taskr$t[(id %in% duplicatedIds) & is.na(name),]
+tid <- 1 + max(taskr$t$id)
+taskr$t[(id %in% duplicatedIds) & is.na(name), id := tid]
+taskr$t[(id %in% duplicatedIds) & name == "Redo problem description WG", id := tid]
+setkey(taskr$t, id)
+
+}
+
+# Leave this space empty!
 NULL
