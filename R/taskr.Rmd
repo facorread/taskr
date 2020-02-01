@@ -1,7 +1,7 @@
 ---
 title: "Productivity charts"
 author: "Fabio A. Correa"
-date: "January 27, 2020"
+date: "February 1, 2020"
 output:
   pdf_document:
     latex_engine: xelatex
@@ -19,18 +19,25 @@ knitr::opts_chunk$set(
 	fig.align = "center"
 )
 source("common.R")
-load("taskr.RData")
+if(!exists("taskr")) {
+  if(file.exists("taskr.RData")) {
+    # cat("taskr: ")
+    load("taskr.RData", verbose = TRUE)
+  } else {
+    stop("Please create some tasks first. Use the taskr.R script and save to disk.\n")
+  }
+}
 ```
 
 # Productivity visualization
 ```{r raster0}
 tmp <- list()
-tmp$tp <- taskr$t[taskr.re(date, -30, 60) & (state == "Pending")]
+tmp$tp <- taskr$t[taskr.re(date, -30, 60) & (state != "Abandoned")]
 tmp$ncol <- trunc(sqrt(nrow(tmp$t)))
 tmp$nrow <- trunc(1.5 * tmp$ncol)
 tmp$coord <- as.data.table(expand.grid(x = 1:tmp$nrow, y = 1:tmp$ncol))
 tmp$t <- cbind(tmp$coord[1:nrow(tmp$t)], tmp$tp)
-tmp$t[, stat := ifelse(state == "Done", 1, 0.5)]
-ggplot(tmp$t, aes(x = x, y = y, fill = hsv(colorh, colors, colorv), alpha = stat)) +
-  geom_raster();
+tmp$t[, State := ifelse(state == "Pending", 1, 0.5)]
+ggplot(tmp$t, aes(x = x, y = y, fill = projectName, alpha = State)) +
+  geom_raster(hjust = 1, vjust = 1);
 ```

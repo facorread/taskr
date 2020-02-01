@@ -3,33 +3,43 @@ if(!exists("fabioLastItem")) {
   source("common.R")
 }
 
-cat("Most of this script is for copying and pasting on the console. Stopping now.\n")
+if(exists("taskr")) {
+  cat("Sourcing script: no action taken.\n")
+} else {
+  if(file.exists("taskr.RData")) {
+    # cat("taskr: ")
+    load("taskr.RData", verbose = TRUE)
+  } else {
+    cat("Creating a new taskr dataset with a few example tasks.\n")
+    taskr <- list(t = data.table(
+      date = as.Date(c("2020-01-01", "2020-01-01", "2020-01-02", NA)),
+      name = c("Cooking", "Working out", "Studying", "Example task"),
+      state = c("Pending", "Done"),
+      projectName = c("Hosekeeping", "Loosing weight", "Studying", "Example project"),
+      id = 1:4,
+      parentTaskId = c(NA, NA, NA, 1),
+      recurring = c(TRUE, TRUE, TRUE, FALSE)
+    ))
+    setkey(taskr$t, id)
+  }
+}
+
+cat("Please copy commands from this script into the R console. Remember to save your work!\nStopping now.\n")
 
 # Important notes
 # Do not save colors as data. It is just a hassle. Go with ggplot2 default colors.
 
 function() {
-  return(NULL)
-  load("taskr.RData")
-  # taskr <- list(t = data.table(
-  #   date = as.Date(c("2020-01-01", "2020-01-01", "2020-01-02", NA)),
-  #   name = c("Cooking", "Working out", "Studying", "Example task"),
-  #   state = c("Pending", "Done"),
-  #   projectName = c("Hosekeeping", "Loosing weight", "Studying", "Example project"),
-  #   id = 1:4,
-  #   parentTaskId = c(NA, NA, NA, 1),
-  #   recurring = c(TRUE, TRUE, TRUE, FALSE)
-  # ))
-
-  setkey(taskr$t, id)
-  save(taskr, file = "taskr.RData")
+return(NULL)
+save(taskr, file = "taskr.RData")
 
 # Show recent tasks
 tid <- taskr$t[date == Sys.Date(), id]
 tid <- taskr$t[is.na(date), id]
 tid <- taskr$t[(date == Sys.Date()) & (state == "Pending"), id]
-tid <- taskr$t[(date == Sys.Date()) & (name == "Workout"), id]
+tid <- taskr$t[(date == Sys.Date()) & (name == "Banking"), id]
 tid <- taskr$t[taskr.re(date, -30, -1) & (name == "Workout"), id]
+tid <- taskr$t[name %like% "arpet", id]
 tid <- taskr$t[(projectName == "Housekeeping"), id]
 tid <- taskr$t[taskr.re(date) & (state == "Pending"), id]
 tid <- taskr$t[taskr.re(date, -30, 0) & (state == "Pending"), id]
@@ -38,6 +48,7 @@ taskr$t[tid, .N, by = name]
 taskr$t[tid]
 
 # Show a project
+tid <- taskr$t[projectName == "Writing proposals", id]
 tid <- taskr$t[projectName == "Writing proposals", id]
 tid <- taskr$t[(projectName == "Weight loss") & (is.na(date) | date <= Sys.Date()), id]
 taskr$t[tid]
@@ -49,7 +60,6 @@ tid <- taskr$t[is.na(projectName), id]
 taskr$t[tid]
 
 # Get things done
-tid <- 835:850
 taskr$t[tid]
 taskr$t[tid, state := "Done"]
 taskr$t[tid, state := "Abandoned"]
@@ -64,6 +74,7 @@ tid <- 1 + max(taskr$t$id)
 taskr$t <- rbindlist(list(taskr$t, data.table(id = tid, state = "Pending", recurring = FALSE)), fill = TRUE) # https://stackoverflow.com/a/16797392/870609
 taskr$t[tid, date := Sys.Date()]
 taskr$t[tid, date := as.Date("2020-01-29")]
+taskr$t[tid, name := "Banking"]
 taskr$t[tid, name := "Class prep"]
 taskr$t[tid, name := "Cleaning the carpet"]
 taskr$t[tid, name := "Cleaning the shower"]
@@ -102,7 +113,7 @@ taskr$t[tid]
 # New recurring task
 newDates = seq(Sys.Date(), by = 1, length.out = 20)
 newDates = seq(Sys.Date(), to = as.Date("2020-12-31"), by = 1)
-newDates = seq(as.Date("2020-01-28"), to = as.Date("2020-12-31"), by = 14)
+newDates = seq(as.Date("2020-02-02"), to = as.Date("2020-12-31"), by = 14)
 newDates = seq(as.Date("2020-01-28"), length.out = 7, by = 14)
 tid <- seq_along(newDates) + max(taskr$t$id)
 taskr$t <- rbindlist(list(taskr$t, data.table(id = tid, state = "Pending", recurring = TRUE)), fill = TRUE) # https://stackoverflow.com/a/16797392/870609
