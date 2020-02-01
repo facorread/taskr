@@ -144,7 +144,22 @@ fabioMaxInteger <- function(v, ...) {
 
 # Show a task summary
 taskr.show <- function(t) {
-  t[, .(date, name, state, projectName)]
+  # Assuming t is a subset of a data.table
+  stopifnot("data.table" %in% class(t))
+  dt <- copy(t)
+  setkey(dt, name)
+  dt[, id := NULL]
+  dt[, parentTaskId := NULL]
+  if(all(is.na(dt$date))) {
+    dt[, date := NULL]
+  }
+  if(all(is.na(dt$deadline))) {
+    dt[, deadline := NULL]
+  }
+  if(!any(dt$recurring)) {
+    dt[, recurring := NULL]
+  }
+  show(dt)
 }
 
 # Returns a recent date interval
