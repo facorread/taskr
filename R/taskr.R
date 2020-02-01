@@ -20,15 +20,21 @@ function() {
   #   parentTaskId = c(NA, NA, NA, 1),
   #   recurring = c(TRUE, TRUE, TRUE, FALSE)
   # ))
+
   setkey(taskr$t, id)
   save(taskr, file = "taskr.RData")
 
 # Show recent tasks
 tid <- taskr$t[date == Sys.Date(), id]
+tid <- taskr$t[is.na(date), id]
 tid <- taskr$t[(date == Sys.Date()) & (state == "Pending"), id]
+tid <- taskr$t[(date == Sys.Date()) & (name == "Workout"), id]
+tid <- taskr$t[taskr.re(date, -30, -1) & (name == "Workout"), id]
+tid <- taskr$t[(projectName == "Housekeeping"), id]
 tid <- taskr$t[taskr.re(date) & (state == "Pending"), id]
 tid <- taskr$t[taskr.re(date, -30, 0) & (state == "Pending"), id]
 tid <- taskr$t[taskr.re(date, -30, 10) & (state == "Pending") & !recurring, id]
+taskr$t[tid, .N, by = name]
 taskr$t[tid]
 
 # Show a project
@@ -38,11 +44,12 @@ taskr$t[tid]
 
 # Search
 tid <- taskr$t[projectName %like% "proposals", id]
+tid <- taskr$t[name %like% "Sean", id]
 tid <- taskr$t[is.na(projectName), id]
 taskr$t[tid]
 
 # Get things done
-tid <- 3
+tid <- 835:850
 taskr$t[tid]
 taskr$t[tid, state := "Done"]
 taskr$t[tid, state := "Abandoned"]
@@ -82,10 +89,6 @@ taskr$t[tid, projectName := "Writing proposals"]
 taskr$t[tid, projectName := "Other"]
 taskr$t[tid, projectName := "Teaching"]
 taskr$t[tid, projectName := "Teaching nomination"]
-taskr$t[tid, projectName := "Review Mark Moritz"]
-taskr$t[tid, projectName := "Review Julie Field"]
-taskr$t[tid, projectName := "Review Ian Hamilton"]
-taskr$t[tid, projectName := "Review Sean Downey"]
 taskr$t[tid, projectName := "OSU"]
 taskr$t[tid, projectName := "HCLab"]
 taskr$t[tid, parentTaskId := 0]
