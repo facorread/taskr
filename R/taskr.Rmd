@@ -30,14 +30,49 @@ if(!exists("taskr")) {
 ```
 
 # Productivity visualization
-```{r raster0}
+```{r productivity, fig.height = 3, fig.width = 6}
 tmp <- list()
-tmp$tp <- taskr$t[taskr.re(date, -30, 60) & (state != "Abandoned")]
+tmp$tp <- taskr$t[(is.null(Date) | (year(Date) == year(Sys.Date()))) & (state != "Abandoned") & !(Project %in% c("Weight loss", "Study Chinese", "Housekeeping", "Example project"))]
+tmp$tp[, projectSize := -.N, by = Project]
+setkey(tmp$tp, projectSize, state, Date)
 tmp$ncol <- trunc(sqrt(nrow(tmp$t)))
+tmp$colBreaks <- seq(0, tmp$ncol + 1, 0.25)
 tmp$nrow <- trunc(1.5 * tmp$ncol)
-tmp$coord <- as.data.table(expand.grid(x = 1:tmp$nrow, y = 1:tmp$ncol))
+tmp$rowBreaks <- seq(0, tmp$nrow + 1, 0.25)
+tmp$coord <- as.data.table(expand.grid(x = 1:tmp$ncol, y = 1:tmp$nrow))
 tmp$t <- cbind(tmp$coord[1:nrow(tmp$t)], tmp$tp)
 tmp$t[, State := ifelse(state == "Pending", 1, 0.5)]
-ggplot(tmp$t, aes(x = x, y = y, fill = projectName, alpha = State)) +
-  geom_raster(hjust = 1, vjust = 1);
+ggplot(tmp$t, aes(x = x, y = y, fill = Project, alpha = State)) +
+  geom_raster(hjust = 1, vjust = 1) + coord_cartesian(expand = FALSE) +
+  scale_alpha(limits = c(0, 1)) + scale_x_continuous(name = NULL,
+    breaks = tmp$colBreaks, labels = NULL) +
+  scale_y_continuous(name = NULL, breaks = tmp$rowBreaks, labels = NULL) +
+  theme(panel.grid.major = th$line0)
 ```
+
+# Deadlines
+```{r deadlines, fig.height = 4, fig.width = 6}
+tmp$d <- taskr$t[(year(Deadline) == year(Sys.Date())) & (state == "Pending")]
+tmp$d[, nextProjectDeadline := Sys.Date() - min(Deadline), by = Project]
+setkey(tmp$d, nextProjectDeadline, Deadline)
+tmp$d[, DeadlineSort := -.I]
+setkey(tmp$d, nextProjectDeadline, DeadlineSort)
+# This is essential for the factor() below
+stopifnot(anyDuplicated(tmp$d[, .(Task, Deadline)]) == 0)
+tmp$d[, TaskDeadline := paste(Task, fabioMDay(Deadline))]
+tmp$d[, `Next task` := factor(TaskDeadline, levels = TaskDeadline, ordered = TRUE)]
+tmp$dLim <- c(fabioYearStart(min(tmp$d$Deadline)), max(tmp$d$Deadline))
+ggplot(tmp$d, aes(x = `Next task`, y = Deadline, fill = Project, label = TaskDeadline)) +
+  geom_col() + geom_text(hjust = 1) +
+  coord_flip(ylim = tmp$dLim) + scale_x_discrete(name = NULL, labels = NULL) +
+  labs(y = NULL)
+```
+
+# Done tasks per day
+```{r doneTL, fig.height = 2, fig.width = 6}
+tmp$nDone <- taskr$t[(year(Date) == year(Sys.Date())) & (state == "Done"),
+  .(`Tasks done` = .N), keyby = Date]
+ggplot(tmp$nDone, aes(x = Date, y = `Tasks done`)) + geom_col()
+```
+
+

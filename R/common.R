@@ -147,13 +147,13 @@ taskr.show <- function(t) {
   # Assuming t is a subset of data.table taskr$t
   stopifnot("data.table" %in% class(t))
   dt <- copy(t)
-  setkey(dt, date, projectName, id)
+  setkey(dt, Date, Project, id)
   dt[, parentTaskId := NULL]
-  if(all(is.na(dt$date))) {
-    dt[, date := NULL]
+  if(all(is.na(dt$Date))) {
+    dt[, Date := NULL]
   }
-  if(all(is.na(dt$deadline))) {
-    dt[, deadline := NULL]
+  if(all(is.na(dt$Deadline))) {
+    dt[, Deadline := NULL]
   }
   if(!any(dt$recurring)) {
     dt[, recurring := NULL]
@@ -169,6 +169,15 @@ taskr.r <- function() {
 # Returns whether a date is recent
 taskr.re <- function(date, days.back = -30, days.after = 0) {
   date %between% (Sys.Date() + c(days.back, days.after))
+}
+
+fabioYearStart <- function(date) {
+  as.Date(cut(date, "year"))
+}
+
+# Returns a date in the format "May 5" because R format(date) adds a space
+fabioMDay <- function(date) {
+  paste(format(date, "%b"), mday(date))
 }
 
 # Do not treat warnings as errors
