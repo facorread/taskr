@@ -75,4 +75,9 @@ tmp$nDone <- taskr$t[(year(Date) == year(Sys.Date())) & (state == "Done"),
 ggplot(tmp$nDone, aes(x = Date, y = `Tasks done`)) + geom_col()
 ```
 
-
+# Words
+```{r wordsTL, fig.height = 2, fig.width = 6}
+tmp$nWords <- taskr$tl[(year(Date) == year(Sys.Date())), .(Words = sum(Words), Forms = sum(Forms), Remove = sum(Remove)), by = Date]
+tmp$nWords[, `New words` := diff(c(0, Words)) - Forms + Remove]
+ggplot(tmp$nWords, aes(x = Date, y = `New words`)) + geom_col()
+```

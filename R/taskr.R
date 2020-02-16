@@ -26,9 +26,9 @@ if(exists("taskr")) {
       tl = data.table(id = 1, # Mandatory, for data.table indexing
         Date = as.Date("2020-02-10"),
         Task = "Yearly report",
-        totalWords = 2591 + 636,
-        newWordsFromElsewhere = 0,
-        wordsInRemovedDocuments = 0
+        Words = 2591 + 636,
+        Forms = 0, # New words that come from elsewhere; for example, forms.
+        Remove = 0 # Words in removed documents; for example, completed homework.
       ))
     setkey(taskr$t, id)
   }
@@ -160,12 +160,12 @@ names(taskr$t)
 tlid <- 1 + max(taskr$tl$id)
 taskr$tl <- rbindlist(list(taskr$tl, data.table(id = tlid)), fill = TRUE) # https://stackoverflow.com/a/16797392/870609
 setkey(taskr$tl, id) # We cannot use the field Date as a key; we can only use the integer "id."
-taskr$tl[tlid, Date := Sys.Date()]
-taskr$tl[tlid, Task := "Academic portfolio"]
-taskr$tl[tlid, totalWords := 5000 + 1000]
-taskr$tl[tlid, newWordsFromElsewhere := 0]
-taskr$tl[tlid, wordsInRemovedDocuments := 0]
-print(taskr$tl, row.names = FALSE)
+taskr$tl[tlid, Date := Sys.Date() - 1]
+taskr$tl[tlid, Task := "Writing Research Proposals"]
+taskr$tl[tlid, totalWords := 126 + 259]
+taskr$tl[tlid, newWordsFromElsewhere := 590] # Positive number
+taskr$tl[tlid, wordsInRemovedDocuments := 3227] # Positive number
+print(taskr$tl[tlid], row.names = FALSE)
 
 # Troubleshooting
 duplicatedIds <- taskr$t[duplicated(id), id]
@@ -181,9 +181,8 @@ setcolorder(taskr$t, c(
 "id", "state", "Task", "Project", "Date", "Deadline", "parentTaskId", "recurring"
 ))
 setcolorder(taskr$tl, c(
-"id", "Date", "Task"
+"id", "Date", "Task", "Words", "Forms", "Remove"
 ))
-names(taskr$t)
 
 # Any new content must go above this line.
 }
