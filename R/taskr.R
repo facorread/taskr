@@ -53,8 +53,8 @@ tid <- taskr$t[Date == Sys.Date(), id]; taskr.show(taskr$t[tid])
 tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending"), id]
 tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Task == "Study Chinese"), id]
 tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Task == "Workout"), id]
-tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Project == "Housekeeping"), id]
 tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Project == "Teaching"), id]
+tid <- taskr$t[(Date <= Sys.Date()) & (state == "Pending") & (Project == "Housekeeping"), id]
 taskr$t[tid, .N, by = Task]
 taskr.show(taskr$t[tid])
 taskr$t[tid]
