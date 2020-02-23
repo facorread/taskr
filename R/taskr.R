@@ -20,7 +20,6 @@ if(exists("taskr")) {
       Project = c("Housekeeping", "Weight loss", "Studying", "Example project"),
       Date = as.Date(c("2020-01-01", "2020-01-01", "2020-01-02", NA)),
       Deadline = as.Date(c("2020-01-01", "2020-01-01", "2020-01-02", NA)),
-      parentTaskId = c(NA, NA, NA, 1),
       recurring = c(TRUE, TRUE, TRUE, FALSE)
     ),
       tl = data.table(id = 1, # Mandatory, for data.table indexing
@@ -50,42 +49,20 @@ save(taskr, file = "taskr.RData")
 
 # Show recent tasks
 tid <- taskr$t[is.na(Date) & (state == "Pending"), id]; taskr.show(taskr$t[tid])
-tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending"), id]
 tid <- taskr$t[Date == Sys.Date(), id]; taskr.show(taskr$t[tid])
-tid <- taskr$t[taskr.re(Date, -30, -1), id]
-tid <- taskr$t[taskr.re(Date, -30, -1) & (Task == "Workout"), id]
-tid <- taskr$t[taskr.re(Date) & (state == "Pending"), id]
-tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Task == "Study Chinese"), id]
-tid <- taskr$t[taskr.re(Date, -30, 10) & (state == "Pending") & !recurring, id]
-taskr$t[tid, .N, by = Task]
-taskr.show(taskr$t[tid])
-taskr$t[tid]
-
-# Search
-tid <- taskr$t[Project %like% "proposals", id]
-tid <- taskr$t[Project == "Studying", id]
-tid <- taskr$t[Task %like% "eer", id]
-tid <- taskr$t[(Task %like% "orkout") & (state == "Pending") & (Date < Sys.Date()), id]
-tid <- taskr$t[is.na(Date), id]
-tid <- taskr$t[Date == as.Date("2020-03-01"), id]
-tid <- taskr$t[taskr.re(Date) & (state == "Pending") & (Task == "Study Chinese"), id]
 tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending"), id]
-tid <- taskr$t[(Date == Sys.Date()) & (Task == "Banking"), id]
-taskr$t[, .N, by = Project]
-taskr.show(taskr$t[tid])
-taskr$t[tid]
-
-# Show a project
-tid <- taskr$t[Task == "Schedule consultation with the Writing Center", id]
-tid <- taskr$t[(Project == "Writing proposals") & (Date > "2020-02-15"), id]
-tid <- taskr$t[(Project == "Weight loss") & (is.na(Date) | Date <= Sys.Date()), id]
+tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Task == "Study Chinese"), id]
+tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Task == "Workout"), id]
+tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Project == "Housekeeping"), id]
+tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Project == "Teaching"), id]
+taskr$t[tid, .N, by = Task]
 taskr.show(taskr$t[tid])
 taskr$t[tid]
 
 # Get things done
 # taskr.show(taskr$t[tid <- 353]) # Do not do this
 
-tid <- c(361, 21); taskr.show(taskr$t[tid])
+tid <- 941:942; taskr.show(taskr$t[tid])
 taskr$t[tid, state := "Done"]
 taskr$t[tid, state := "Abandoned"]
 
@@ -94,11 +71,10 @@ tid <- 1 + max(taskr$t$id)
 taskr$t <- rbindlist(list(taskr$t, data.table(id = tid, state = "Pending", recurring = FALSE)), fill = TRUE) # https://stackoverflow.com/a/16797392/870609
 setkey(taskr$t, id)
 taskr$t[tid, Date := Sys.Date()]
-taskr$t[tid, Date := as.Date("2020-04-15")]
+taskr$t[tid, Date := as.Date("2020-08-27")]
 taskr$t[tid, Deadline := Date]
 taskr$t[tid, Deadline := as.Date("2020-04-15")]
 taskr$t[tid, Task := "Banking"]
-taskr$t[tid, Task := "Candidacy improvement plan"]
 taskr$t[tid, Task := "Class prep"]
 taskr$t[tid, Task := "Cleaning the carpet"]
 taskr$t[tid, Task := "Create teaching portfolio"]
@@ -106,10 +82,8 @@ taskr$t[tid, Task := "Reshape worklog script"]
 taskr$t[tid, Task := "Grade labs"]
 taskr$t[tid, Task := "Grade exams"]
 taskr$t[tid, Task := "Laundry"]
-taskr$t[tid, Task := "Mail my taxes"]
 taskr$t[tid, Task := "Peer review"]
 taskr$t[tid, Task := "Qualifications WG"]
-taskr$t[tid, Task := "Schedule Writing Center"]
 taskr$t[tid, Task := "Study Chinese"]
 taskr$t[tid, Task := "Study of empty households"]
 taskr$t[tid, Task := "Washing the carpet"]
@@ -129,7 +103,6 @@ taskr$t[tid, Project := "Teaching nomination"]
 taskr$t[tid, Project := "Study Chinese"]
 taskr$t[tid, Project := "Weight loss"]
 taskr$t[tid, Project := "Writing proposals"]
-taskr$t[tid, parentTaskId := 0]
 taskr$t[tid, state := "Pending"]
 taskr$t[tid, state := "Done"]
 taskr$t[tid, recurring := FALSE]
@@ -138,8 +111,7 @@ taskr$t[tid, recurring := TRUE]
 # Show the new task
 taskr.show(taskr$t[tid])
 taskr$t[tid]
-taskr.show(tail(taskr$t))
-tail(taskr$t)
+print(tail(taskr$t), row.names = FALSE)
 
 # New recurring task
 newDates = seq(Sys.Date(), by = 1, length.out = 20)
@@ -161,11 +133,24 @@ tlid <- 1 + max(taskr$tl$id)
 taskr$tl <- rbindlist(list(taskr$tl, data.table(id = tlid)), fill = TRUE) # https://stackoverflow.com/a/16797392/870609
 setkey(taskr$tl, id) # We cannot use the field Date as a key; we can only use the integer "id."
 taskr$tl[tlid, Date := Sys.Date() - 1]
-taskr$tl[tlid, Task := "Writing Research Proposals"]
-taskr$tl[tlid, totalWords := 126 + 259]
-taskr$tl[tlid, newWordsFromElsewhere := 590] # Positive number
-taskr$tl[tlid, wordsInRemovedDocuments := 3227] # Positive number
+taskr$tl[tlid, Task := "Proposals WG5 Contributions"]
+taskr$tl[tlid, Words := 344]
+taskr$tl[tlid, Task := "Proposals: WG5 Contributions Notes"]
+taskr$tl[tlid, Words := 281]
+taskr$tl[tlid, Task := "Exam Q3"]
+taskr$tl[tlid, Words := 287]
+taskr$tl[tlid, Forms := 0]
+taskr$tl[tlid, Task := "Exam Q3 Notes"]
+taskr$tl[tlid, Words := 382]
+taskr$tl[tlid, Forms := 123 * 2 + 19]
+# Forms: Positive number, enter only once the day of introduction: New words that come from elsewhere; for example, forms. Another example: the references section.
+
+taskr$tl[tlid, Remove := 0]
+# Remove: Positive number, enter only once the day after last writing: Words in removed documents; for example, completed homework.
+
+print(tail(taskr$tl), row.names = FALSE)
 print(taskr$tl[tlid], row.names = FALSE)
+print(taskr$tl, row.names = FALSE)
 
 # Troubleshooting
 duplicatedIds <- taskr$t[duplicated(id), id]
@@ -178,7 +163,7 @@ setkey(taskr$t, id)
 
 # Housekeeping
 setcolorder(taskr$t, c(
-"id", "state", "Task", "Project", "Date", "Deadline", "parentTaskId", "recurring"
+"id", "state", "Task", "Project", "Date", "Deadline", "recurring"
 ))
 setcolorder(taskr$tl, c(
 "id", "Date", "Task", "Words", "Forms", "Remove"

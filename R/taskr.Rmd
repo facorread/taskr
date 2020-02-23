@@ -1,7 +1,7 @@
 ---
 title: "Productivity charts"
 author: "Fabio A. Correa"
-date: "February 1, 2020"
+date: "`r Sys.time()`"
 output:
   pdf_document:
     latex_engine: xelatex
@@ -63,9 +63,9 @@ tmp$d[, TaskDeadline := paste(Task, fabioMDay(Deadline))]
 tmp$d[, `Next task` := factor(TaskDeadline, levels = TaskDeadline, ordered = TRUE)]
 tmp$dLim <- c(fabioYearStart(min(tmp$d$Deadline)), max(tmp$d$Deadline))
 ggplot(tmp$d, aes(x = `Next task`, y = Deadline, fill = Project, label = TaskDeadline)) +
-  geom_col() + geom_text(hjust = 1) +
+  geom_col() + geom_text(hjust = 1) + geom_hline(yintercept = Sys.Date(), colour = "black") +
   coord_flip(ylim = tmp$dLim) + scale_x_discrete(name = NULL, labels = NULL) +
-  labs(y = NULL)
+  labs(y = NULL) + theme(legend.position = c(0.99, 0.99), legend.justification = 1)
 ```
 
 # Done tasks per day
@@ -76,7 +76,7 @@ ggplot(tmp$nDone, aes(x = Date, y = `Tasks done`)) + geom_col()
 ```
 
 # Words
-```{r wordsTL, fig.height = 2, fig.width = 6}
+```{r wordsTL, fig.height = 4, fig.width = 6}
 tmp$nWords <- taskr$tl[(year(Date) == year(Sys.Date())), .(Words = sum(Words), Forms = sum(Forms), Remove = sum(Remove)), by = Date]
 tmp$nWords[, `New words` := diff(c(0, Words)) - Forms + Remove]
 ggplot(tmp$nWords, aes(x = Date, y = `New words`)) + geom_col()

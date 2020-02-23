@@ -148,7 +148,6 @@ taskr.show <- function(t) {
   stopifnot("data.table" %in% class(t))
   dt <- copy(t)
   setkey(dt, Date, Project, id)
-  dt[, parentTaskId := NULL]
   if(all(is.na(dt$Date))) {
     dt[, Date := NULL]
   }
