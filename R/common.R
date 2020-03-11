@@ -120,8 +120,6 @@ fabioCheckFill <- function(v, strict = FALSE) {
   v
 }
 
-
-
 # Returns a logical vector indicating the data that is valid.
 fabioIsValid <- function(v) {
   (!is.na(v)) & (v != "?") & (v != "TBD")
@@ -140,6 +138,74 @@ fabioInteger <- function(v) {
 # Returns the maximum value of fabioInteger(v)
 fabioMaxInteger <- function(v, ...) {
   max(fabioInteger(v), ...)
+}
+
+# Returns nMax unique values that are the maxima of vector v
+#
+# Examples
+#
+# stopifnot(fabioMaxima(c(1, 2, 2, 3, 4, 4, 5), 1) == 5)
+# stopifnot(fabioMaxima(c(1, 2, 2, 3, 4, 4, 5), 2) == 4:5)
+# stopifnot(fabioMaxima(c(1, 2, 2, 3, 4, 4, 5), 3) == 3:5)
+# stopifnot(fabioMaxima(c(1, 2, 2, 3, 4, 4, 5), 4) == 2:5)
+# stopifnot(fabioMaxima(c(1, 2, 2, 3, 4, 4, 5), 5) == 1:5)
+# stopifnot(fabioMaxima(c(1, 2, 2, 3, 4, 4, NA), 5) == 1:4)
+#
+fabioMaxima <- function(v, nMax) {
+  vunique <- data.table(values = na.omit(v))[, .BY, keyby = values]
+  tail(vunique$values, nMax)
+}
+
+# Returns a logical vector indicating which elements are
+# the two maxima of vector v.
+#
+# Examples
+#
+# stopifnot(fabioSelMax(c(1, 1, 2, 3, 3), 1) == c(FALSE, FALSE, FALSE, TRUE, TRUE))
+# stopifnot(fabioSelMax(c(1, 1, 2, 3, 3), 2) == c(FALSE, FALSE, TRUE, TRUE, TRUE))
+# stopifnot(fabioSelMax(c(1, NA, 3), 1) == c(FALSE, FALSE, TRUE))
+fabioSelMax <- function(v, nMax) {
+  v %in% fabioMaxima(v, nMax)
+}
+
+# Returns nMin unique values that are the minima of vector v
+#
+# Examples
+#
+# stopifnot(fabioMinima(c(1, 2, 2, 3, 4, 4, 5), 1) == 1)
+# stopifnot(fabioMinima(c(1, 2, 2, 3, 4, 4, 5), 2) == 1:2)
+# stopifnot(fabioMinima(c(1, 2, 2, 3, 4, 4, 5), 3) == 1:3)
+# stopifnot(fabioMinima(c(1, 2, 2, 3, 4, 4, 5), 4) == 1:4)
+# stopifnot(fabioMinima(c(1, 2, 2, 3, 4, 4, 5), 5) == 1:5)
+# stopifnot(fabioMinima(c(1, NA, 2, 3, 4, 4, 5), 5) == 1:5)
+#
+fabioMinima <- function(v, nMin) {
+  vunique <- data.table(values = na.omit(v))[, .BY, keyby = values]
+  head(vunique$values, nMin)
+}
+
+# Returns a logical vector indicating which elements are
+# the two maxima of vector v.
+#
+# Examples
+#
+# stopifnot(fabioSelMin(c(1, 1, 2, 3, 3), 1) == c(TRUE, TRUE, FALSE, FALSE, FALSE))
+# stopifnot(fabioSelMin(c(1, 1, 2, 3, 3), 2) == c(TRUE, TRUE, TRUE, FALSE, FALSE))
+# stopifnot(fabioSelMin(c(1, NA, 3), 1) == c(TRUE, FALSE, FALSE))
+fabioSelMin <- function(v, nMin) {
+  v %in% fabioMinima(v, nMin)
+}
+
+# Returns a logical vector indicating which elements are at the extremes of
+# the range of vector v.
+#
+# Examples
+#
+# stopifnot(fabioSelRange(c(1, 1, 2, 3)) == c(TRUE, TRUE, FALSE, TRUE))
+# stopifnot(fabioSelRange(c(1, 1, 2, 3)) == c(TRUE, TRUE, FALSE, TRUE))
+# stopifnot(fabioSelRange(c(1, NA, 3)) == c(TRUE, FALSE, TRUE))
+fabioSelRange <- function(v) {
+  v %in% range(v, na.rm = TRUE)
 }
 
 # Show a task summary

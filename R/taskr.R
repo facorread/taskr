@@ -49,12 +49,13 @@ save(taskr, file = "taskr.RData")
 
 # Show recent tasks
 tid <- taskr$t[is.na(Date) & (state == "Pending"), id]; taskr.show(taskr$t[tid])
+tid <- taskr$t[(is.na(Date) | (Date <= Sys.Date())) & (state == "Pending"), id]; taskr.show(taskr$t[tid])
+tid <- taskr$t[(Date <= Sys.Date()) & (state == "Pending"), id]; taskr.show(taskr$t[tid])
 tid <- taskr$t[Date == Sys.Date(), id]; taskr.show(taskr$t[tid])
-tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending"), id]
-tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Task == "Study Chinese"), id]
-tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Task == "Workout"), id]
-tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Project == "Teaching"), id]
-tid <- taskr$t[(Date <= Sys.Date()) & (state == "Pending") & (Project == "Housekeeping"), id]
+tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Task == "Study Chinese"), id]; taskr.show(taskr$t[tid])
+tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Task == "Workout"), id]; taskr.show(taskr$t[tid])
+tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Project == "Teaching"), id]; taskr.show(taskr$t[tid])
+tid <- taskr$t[(Date <= Sys.Date()) & (state == "Pending") & (Project == "Housekeeping"), id]; taskr.show(taskr$t[tid])
 taskr$t[tid, .N, by = Task]
 taskr.show(taskr$t[tid])
 taskr$t[tid]
@@ -62,7 +63,7 @@ taskr$t[tid]
 # Get things done
 # taskr.show(taskr$t[tid <- 353]) # Do not do this
 
-tid <- 941:942; taskr.show(taskr$t[tid])
+tid <- 865; taskr.show(taskr$t[tid])
 taskr$t[tid, state := "Done"]
 taskr$t[tid, state := "Abandoned"]
 
@@ -133,23 +134,51 @@ tlid <- 1 + max(taskr$tl$id)
 taskr$tl <- rbindlist(list(taskr$tl, data.table(id = tlid)), fill = TRUE) # https://stackoverflow.com/a/16797392/870609
 setkey(taskr$tl, id) # We cannot use the field Date as a key; we can only use the integer "id."
 taskr$tl[tlid, Date := Sys.Date() - 1]
-taskr$tl[tlid, Task := "Proposals WG5 Contributions"]
-taskr$tl[tlid, Words := 344]
+taskr$tl[tlid, Date := as.Date("2020-02-24")]
 taskr$tl[tlid, Task := "Proposals: WG5 Contributions Notes"]
-taskr$tl[tlid, Words := 281]
+taskr$tl[tlid, Words := 0]
 taskr$tl[tlid, Task := "Exam Q3"]
 taskr$tl[tlid, Words := 287]
 taskr$tl[tlid, Forms := 0]
 taskr$tl[tlid, Task := "Exam Q3 Notes"]
 taskr$tl[tlid, Words := 382]
-taskr$tl[tlid, Forms := 123 * 2 + 19]
+taskr$tl[tlid, Forms := 0]
 # Forms: Positive number, enter only once the day of introduction: New words that come from elsewhere; for example, forms. Another example: the references section.
 
-taskr$tl[tlid, Remove := 0]
+# Timeline: Copy documents from last time into yesterday
+tmp <- list()
+tmp$newTasks <- taskr$tl[(Date == fabioLarger(Date, 1)) & (Words > 0) & !(Task %like% "Q3") & !(Task %like% "ntee")]
+tmp$newTasks
+setkey(tmp$newTasks, NULL)
+tmp$newTasks[, id := id + max(taskr$tl$id) + 1 - min(id)]
+tmp$newTasks[, Date := as.Date("2020-02-24")]
+tmp$newTasks[, Remove := Words]
+tmp$newTasks[, Words := 0]
+tmp$newTasks[, Forms := 0]
+tmp$newTasks
+
+taskr$tl <- rbindlist(list(taskr$tl, tmp$newTasks)) # https://stackoverflow.com/a/16797392/870609
+setkey(taskr$tl, id) # We cannot use the field Date as a key; we can only use the integer "id."
+
+
 # Remove: Positive number, enter only once the day after last writing: Words in removed documents; for example, completed homework.
 
+
+
 print(tail(taskr$tl), row.names = FALSE)
+print(taskr$tl[Date %in% c(NA, fabioMaxima(Date, 2))], row.names = FALSE)
+print(taskr$tl[Task %like% "WG5"], row.names = FALSE)
 print(taskr$tl[tlid], row.names = FALSE)
+print(taskr$tl, row.names = FALSE)
+tlid <- 1; print(taskr$tl[tlid], row.names = FALSE)
+
+# Re-sorting the timeline can be useful
+tlid <- NULL
+taskr$tl[, idate := as.integer(Date)]
+setkey(taskr$tl, idate, Words, Forms, Remove)
+taskr$tl[, id := .I]
+setkey(taskr$tl, id) # We cannot use the field Date as a key; we can only use the integer "id."
+taskr$tl[, idate := NULL]
 print(taskr$tl, row.names = FALSE)
 
 # Troubleshooting
