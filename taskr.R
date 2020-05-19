@@ -9,8 +9,6 @@ if(exists("taskr")) {
   if(file.exists("taskr.RData")) {
     # cat("taskr: ")
     load("taskr.RData", verbose = TRUE)
-    setkey(taskr$t, id)
-    setkey(taskr$tl, Date)
   } else {
     cat("Creating a new taskr dataset with a few example tasks.\n")
     taskr <- list(t = data.table(
@@ -28,9 +26,17 @@ if(exists("taskr")) {
         Words = 2591 + 636,
         Forms = 0, # New words that come from elsewhere; for example, forms.
         Remove = 0 # Words in removed documents; for example, completed homework.
-      ))
-    setkey(taskr$t, id)
+      ),
+      pb = data.table(id = 1, # Mandatory, for data.table indexing
+        Task = "Restroom",
+        Start = ISOdatetime(2020, 05, 19, 06, 00, 00),
+        End = ISOdatetime(2020, 05, 19, 07, 00, 00)
+        )
+      )
   }
+  setkey(taskr$t, id)
+  setkey(taskr$tl, id)
+  setkey(taskr$pb, id)
 }
 
 cat("Please copy commands from this script into the R console. Remember to save your work!\nStopping now.\n")
@@ -48,22 +54,22 @@ return(NULL)
 save(taskr, file = "taskr.RData")
 
 # Show recent tasks
-tid <- taskr$t[is.na(Date) & (state == "Pending"), id]; taskr.show(taskr$t[tid])
-tid <- taskr$t[(is.na(Date) | (Date <= Sys.Date())) & (state == "Pending"), id]; taskr.show(taskr$t[tid])
-tid <- taskr$t[(Date <= Sys.Date()) & (state == "Pending"), id]; taskr.show(taskr$t[tid])
-tid <- taskr$t[Date == Sys.Date(), id]; taskr.show(taskr$t[tid])
-tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Task == "Study Chinese"), id]; taskr.show(taskr$t[tid])
-tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Task == "Workout"), id]; taskr.show(taskr$t[tid])
-tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Project == "Teaching"), id]; taskr.show(taskr$t[tid])
-tid <- taskr$t[(Date <= Sys.Date()) & (state == "Pending") & (Project == "Housekeeping"), id]; taskr.show(taskr$t[tid])
+tid <- taskr$t[is.na(Date) & (state == "Pending"), id]; showt(taskr$t[tid])
+tid <- taskr$t[(is.na(Date) | (Date <= Sys.Date())) & (state == "Pending"), id]; showt(taskr$t[tid])
+tid <- taskr$t[(Date <= Sys.Date()) & (state == "Pending"), id]; showt(taskr$t[tid])
+tid <- taskr$t[Date == Sys.Date(), id]; showt(taskr$t[tid])
+tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Task == "Study Chinese"), id]; showt(taskr$t[tid])
+tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Task == "Workout"), id]; showt(taskr$t[tid])
+tid <- taskr$t[(Date < Sys.Date()) & (state == "Pending") & (Project == "Teaching"), id]; showt(taskr$t[tid])
+tid <- taskr$t[(Date <= Sys.Date()) & (state == "Pending") & (Project == "Housekeeping"), id]; showt(taskr$t[tid])
 taskr$t[tid, .N, by = Task]
-taskr.show(taskr$t[tid])
+showt(taskr$t[tid])
 taskr$t[tid]
 
 # Get things done
-# taskr.show(taskr$t[tid <- 353]) # Do not do this
+# showt(taskr$t[tid <- 353]) # Do not do this
 
-tid <- 865; taskr.show(taskr$t[tid])
+tid <- 865; showt(taskr$t[tid])
 taskr$t[tid, state := "Done"]
 taskr$t[tid, state := "Abandoned"]
 
@@ -110,7 +116,7 @@ taskr$t[tid, recurring := FALSE]
 taskr$t[tid, recurring := TRUE]
 
 # Show the new task
-taskr.show(taskr$t[tid])
+showt(taskr$t[tid])
 taskr$t[tid]
 print(tail(taskr$t), row.names = FALSE)
 
@@ -180,6 +186,22 @@ taskr$tl[, id := .I]
 setkey(taskr$tl, id) # We cannot use the field Date as a key; we can only use the integer "id."
 taskr$tl[, idate := NULL]
 print(taskr$tl, row.names = FALSE)
+
+# Personal best: new record
+pid <- 1 + max(taskr$pb$id)
+taskr$pb <- rbindlist(list(taskr$pb, data.table(id = pid, Start = Sys.time())), fill = TRUE) # https://stackoverflow.com/a/16797392/870609
+setkey(taskr$pb, id)
+taskr$pb[pid, Task := "Cleaning the kitchen"]
+taskr$pb[pid, Task := "Restroom"]
+taskr$pb[pid, Task := "Cooking"]
+taskr$pb[pid, Task := "Ironing"]
+taskr$pb[pid, Task := "Meeting prep"]
+taskr$pb[pid, Task := "Pack and take out the trash"]
+taskr$pb[pid, End := Sys.time()]
+taskr$pb[pid, secs := as.integer(difftime(End, Start, units = "secs"))]
+taskr$pb[pid, Duration := paste0(secs %/% 60, "m", secs %% 60, "s")]
+showpb(taskr$pb, pid)
+taskr$pb
 
 # Troubleshooting
 duplicatedIds <- taskr$t[duplicated(id), id]

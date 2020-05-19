@@ -157,7 +157,7 @@ fabioMaxima <- function(v, nMax) {
 }
 
 # Returns a logical vector indicating which elements are
-# the two maxima of vector v.
+# the nMax maxima of vector v.
 #
 # Examples
 #
@@ -168,6 +168,15 @@ fabioSelMax <- function(v, nMax) {
   v %in% fabioMaxima(v, nMax)
 }
 
+# Returns a logical vector indicating which elements are
+# the maximum of vector v.
+#
+# Examples
+#
+# stopifnot(fabioMax(c(1, 2, 3, 3, NA)) == c(FALSE, FALSE, TRUE, TRUE, FALSE))
+fabioMax <- function(v) {
+  v %in% max(na.omit(v))
+}
 # Returns nMin unique values that are the minima of vector v
 #
 # Examples
@@ -185,7 +194,7 @@ fabioMinima <- function(v, nMin) {
 }
 
 # Returns a logical vector indicating which elements are
-# the two maxima of vector v.
+# the nMin minima of vector v.
 #
 # Examples
 #
@@ -194,6 +203,16 @@ fabioMinima <- function(v, nMin) {
 # stopifnot(fabioSelMin(c(1, NA, 3), 1) == c(TRUE, FALSE, FALSE))
 fabioSelMin <- function(v, nMin) {
   v %in% fabioMinima(v, nMin)
+}
+
+# Returns a logical vector indicating which elements are
+# the minimum of vector v.
+#
+# Examples
+#
+# stopifnot(fabioMin(c(1, 1, 2, 3, NA)) == c(TRUE, TRUE, FALSE, FALSE, FALSE))
+fabioMin <- function(v) {
+  v %in% min(na.omit(v))
 }
 
 # Returns a logical vector indicating which elements are at the extremes of
@@ -209,7 +228,7 @@ fabioSelRange <- function(v) {
 }
 
 # Show a task summary
-taskr.show <- function(t) {
+showt <- function(t) {
   # Assuming t is a subset of data.table taskr$t
   stopifnot("data.table" %in% class(t))
   dt <- copy(t)
@@ -224,6 +243,25 @@ taskr.show <- function(t) {
     dt[, recurring := NULL]
   }
   print(dt, row.names = FALSE)
+}
+
+# Returns the personal best and latest
+showpb <- function(pb, pid) {
+  # Assuming pb is a subset of data.table taskr$pb
+  stopifnot("data.table" %in% class(pb))
+  stopifnot("numeric" %in% class(pid))
+  dt <- copy(pb[Task == pb[pid, Task]])
+  setkey(dt, Start, Task, id)
+  minId <- dt[fabioMin(secs), id]
+  dt[, secs := NULL]
+  dt[, End := NULL]
+  if(pid %in% minId) {
+    cat("You just beat your own record!\n")
+    print(dt[id %in% minId], row.names = FALSE)
+  } else {
+    allId <- c(minId, pid)
+    print(dt[id %in% allId], row.names = FALSE)
+  }
 }
 
 # Returns a recent date interval
