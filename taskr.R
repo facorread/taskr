@@ -194,12 +194,16 @@ setkey(taskr$pb, id)
 taskr$pb[pid, Task := "Cleaning the kitchen"]
 taskr$pb[pid, Task := "Restroom"]
 taskr$pb[pid, Task := "Cooking"]
+taskr$pb[pid, Task := "Haircut"]
 taskr$pb[pid, Task := "Ironing"]
+taskr$pb[pid, Task := "Making breakfast"]
 taskr$pb[pid, Task := "Meeting prep"]
 taskr$pb[pid, Task := "Pack and take out the trash"]
+taskr$pb[pid, Task := "Shower"]
 taskr$pb[pid, End := Sys.time()]
 taskr$pb[pid, secs := as.integer(difftime(End, Start, units = "secs"))]
 taskr$pb[pid, Duration := paste0(secs %/% 60, "m", secs %% 60, "s")]
+save(taskr, file = "taskr.RData")
 showpb(taskr$pb, pid)
 taskr$pb
 
