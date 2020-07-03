@@ -69,7 +69,7 @@ taskr$t[tid]
 # Get things done
 # showt(taskr$t[tid <- 353]) # Do not do this
 
-tid <- 865; showt(taskr$t[tid])
+tid <- 841; showt(taskr$t[tid])
 taskr$t[tid, state := "Done"]
 taskr$t[tid, state := "Abandoned"]
 
@@ -141,8 +141,8 @@ taskr$tl <- rbindlist(list(taskr$tl, data.table(id = tlid)), fill = TRUE) # http
 setkey(taskr$tl, id) # We cannot use the field Date as a key; we can only use the integer "id."
 taskr$tl[tlid, Date := Sys.Date() - 1]
 taskr$tl[tlid, Date := Sys.Date()]
-taskr$tl[tlid, Date := as.Date("2020-02-24")]
-taskr$tl[tlid, `:=`(Task = "Exam Q3", Words = 2669, Forms = 0, Remove = 0)]
+taskr$tl[tlid, Date := as.Date("2020-02-28")]
+taskr$tl[tlid, `:=`(Task = "Exam Q3", Words = 3399, Forms = 0, Remove = 0)]
 taskr$tl[tlid, `:=`(Task = "Exam Q3 Notes", Words = 971, Forms = 0, Remove = 0)]
 save(taskr, file = "taskr.RData")
 
